@@ -1,13 +1,7 @@
-// WeatherDataPoint.java (NEW FILE)
 
-/**
- * Represents a single weather measurement received from the server.
- * Format: timestamp attribute x-coordinate y-coordinate value
- * Note: x/y coordinates from the server are centered at (0,0).
- */
 public class WeatherDataPoint {
     private final long timestamp;
-    private final String attribute; // e.g., "rain", "windx", "temp"
+    private final String attribute; 
     private final int x;
     private final int y;
     private final float value;
@@ -20,7 +14,6 @@ public class WeatherDataPoint {
         this.value = value;
     }
 
-    // Getters
     public long getTimestamp() { return timestamp; }
     public String getAttribute() { return attribute; }
     public int getX() { return x; }
