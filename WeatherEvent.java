@@ -1,4 +1,3 @@
-// WeatherEvent.java (RESTORED)
 
 public enum WeatherEvent {
     SUNNY, 
