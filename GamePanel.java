@@ -1,4 +1,3 @@
-// GamePanel.java (REPLACE content - FINAL)
 
 import java.awt.*;
 import java.awt.event.*;
@@ -13,7 +12,6 @@ public class GamePanel extends JPanel implements KeyListener, MouseMotionListene
     boolean won = false;
     boolean gameOver = false; 
     
-    // FIX 1: New field to track the simple weather state for screen tint
     private WeatherEvent currentLegacyWeather = WeatherEvent.SUNNY; 
 
     public GamePanel(Grid<Cell> g, Player p) {
@@ -27,13 +25,11 @@ public class GamePanel extends JPanel implements KeyListener, MouseMotionListene
         addMouseMotionListener(this);
     }
     
-    // Assignment 2 Observer Method (Updates Grid/Repaints)
     @Override
     public void updateWeather(List<WeatherDataPoint> weatherData) {
         repaint(); 
     }
 
-    // FIX 2: Legacy Observer Method (Updates the tint state)
     @Override
     public void updateLegacyWeather(WeatherEvent event) {
         this.currentLegacyWeather = event;
@@ -44,15 +40,11 @@ public class GamePanel extends JPanel implements KeyListener, MouseMotionListene
         super.paintComponent(g);
         grid.paint(g, mousePos); 
         
-        // --- HUD and Player/Goal Drawing (Kept the same) ---
-        // ... (This section remains unchanged) ...
-
-        // HUD TEXT (Top-Left)
+       
         g.setFont(new Font("SansSerif", Font.BOLD, 14));
         g.setColor(Color.BLACK);
         g.drawString("Fuel: " + player.getFuel(), 8, 32); 
 
-        // Draw GOAL and PLAYER
         int gr = grid.rows() - 1, gc = grid.cols() - 1;
         int gx = gc * Cell.size, gy = gr * Cell.size;
         g.setColor(Color.YELLOW);
@@ -66,7 +58,6 @@ public class GamePanel extends JPanel implements KeyListener, MouseMotionListene
         g.setColor(Color.BLACK);
         g.drawOval(px + pad, py + pad, Cell.size - 2 * pad, Cell.size - 2 * pad);
 
-        // INSTRUCTIONS (Bottom Center)
         String instructionText = "Move: W/A/S/D | Goal: Reach the yellow square!";
         int instructionY = grid.rows() * Cell.size - 8;
         Font instructionFont = new Font("SansSerif", Font.BOLD, 16);
@@ -83,19 +74,15 @@ public class GamePanel extends JPanel implements KeyListener, MouseMotionListene
         g.drawString(instructionText, instructionX, instructionY);
 
 
-        // --- FIX 3: Draw the Screen Tint Overlay ---
         Color overlayColor = null;
         int width = grid.cols() * Cell.size;
         int height = grid.rows() * Cell.size;
 
         if (currentLegacyWeather == WeatherEvent.SUNNY) {
-            // Bright, warm tint: light yellow/red with low transparency (alpha=60)
             overlayColor = new Color(255, 180, 0, 60); 
         } else if (currentLegacyWeather == WeatherEvent.SNOW) {
-            // Cold, white tint: pure white with medium transparency (alpha=90)
             overlayColor = new Color(255, 255, 255, 90);
         } else if (currentLegacyWeather == WeatherEvent.RAIN) {
-            // Cool, gloomy tint: dark blue/gray with medium transparency (alpha=90)
             overlayColor = new Color(50, 50, 100, 90); 
         }
 
@@ -103,9 +90,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseMotionListene
             g.setColor(overlayColor);
             g.fillRect(0, 0, width, height);
         }
-        // ---------------------------------------------
 
-        // --- WIN/LOSE Status (Drawn LAST to appear on top of tint) ---
         if (won) {
             g.setFont(new Font("SansSerif", Font.BOLD, 24));
             g.setColor(new Color(0, 150, 0));
@@ -119,7 +104,6 @@ public class GamePanel extends JPanel implements KeyListener, MouseMotionListene
         }
     }
     
-    // ... (rest of checkGameOver, keyPressed, etc. remains unchanged) ...
 
     private void checkGameOver() {
         if (player.getFuel() <= 0 && !won) {
