@@ -1,79 +1,101 @@
-import java.util.Random;
+// Grid.java (REPLACE content)
 
-public class Grid<T extends Cell> { 
-    private final int rows;
-    private final int cols;
-    private final T[][] cells;
-    
-    private int goalRow;
-    private int goalCol;
-    
-    // Minimum distance from (0, 0) to ensure a challenging path
-    private static final int MIN_GOAL_DISTANCE = 5; 
+import java.awt.Graphics;
+import java.awt.Point;
+import java.util.List;
+import java.util.Optional;
 
-    public Grid(int rows, int cols) {
-        this.rows = rows;
-        this.cols = cols;
-        this.cells = (T[][]) new Cell[rows][cols]; 
-        
-        this.goalRow = rows - 1;
-        this.goalCol = cols - 1;
+public class Grid<T extends Cell> implements WeatherObserver { 
+    
+    private final int rows = 20; 
+    private final int cols = 20; 
+    private Cell[][] cells;
+    
+    private char colToLabel(int col) { 
+        return (char) (col + Character.valueOf('A'));
     }
 
+    public Grid() {
+        this.cells = new Cell[rows][cols];
+        
+        for(int r = 0; r < rows; r++) {
+            for(int c = 0; c < cols; c++) {
+                cells[r][c] = new GrassCell(colToLabel(c), r, c, Cell.size * c, Cell.size * r);
+            }
+        }
+    }
+    
     public int rows() { return rows; }
     public int cols() { return cols; }
 
-    public T get(int r, int c) {
-        return cells[r][c];
-    }
-
-    public void set(int r, int c, T cell) {
+    public void setCell(int r, int c, Cell cell) {
         cells[r][c] = cell;
     }
 
+    public Optional<Cell> getCell(int r, int c) {
+        if (inBounds(r, c)) {
+            return Optional.of(cells[r][c]);
+        }
+        return Optional.empty();
+    }
+    
     public boolean inBounds(int r, int c) {
         return r >= 0 && r < rows && c >= 0 && c < cols;
     }
 
-    public void setGoal(int r, int c) {
-        this.goalRow = r;
-        this.goalCol = c;
-    }
-
-    public int getGoalRow() { return goalRow; }
-    public int getGoalCol() { return goalCol; }
-    
-    // Helper method to calculate Manhattan distance (steps)
-    private int getDistance(int r1, int c1, int r2, int c2) {
-        return Math.abs(r1 - r2) + Math.abs(c1 - c2);
-    }
-    
-    public void randomizeGoal() {
-        Random rand = new Random();
-        T targetCell;
+    /**
+     * FIX: Apply WindDecorator logic and simplify decorator removal.
+     * * INTERPRETATION:
+     * 1. Rain > 0.7: Apply SnowDecorator (heavy precipitation/slush).
+     * 2. WindX or WindY > 0.8: Apply WindDecorator (high wind speed).
+     * 3. If a condition is no longer met, revert the cell to its base type.
+     */
+    @Override
+    public void updateWeather(List<WeatherDataPoint> weatherData) {
+        // Clear all current weather decorators before applying new ones
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (cells[r][c] instanceof CellDecorator) {
+                    // Revert to the base cell (essential for proper weather change)
+                    cells[r][c] = ((CellDecorator) cells[r][c]).getDecoratedCell();
+                }
+            }
+        }
         
-        // CRITICAL FIX: Loop until a valid, far-away goal cell is found
-        do {
-            this.goalRow = rand.nextInt(rows);
-            this.goalCol = rand.nextInt(cols);
+        // Use streams to process the incoming data points (Lambda/Stream use case)
+        weatherData.stream().forEach(data -> {
+            // Simplified Mapping: Add 10 (center to corner) to x/y, then truncate to int
+            int targetC = data.getX() + 10;
+            int targetR = data.getY() + 10;
             
-            // Get the cell object (it should be set thanks to the Main.java fix)
-            targetCell = get(goalRow, goalCol);
-            
-        } while ((this.goalRow == 0 && this.goalCol == 0) || // 1. Must not be the start (0,0)
-                 (targetCell == null) || // 2. Must be a defined cell
-                 (targetCell instanceof WaterCell) || // 3. Must NOT be a WaterCell (impassable)
-                 (getDistance(0, 0, this.goalRow, this.goalCol) < MIN_GOAL_DISTANCE)); // 4. Must be far enough away
-
+            if (inBounds(targetR, targetC)) {
+                Cell currentCell = cells[targetR][targetC];
+                
+                // --- Apply New Decorator Logic ---
+                if (data.getAttribute().equals("rain") && data.getValue() > 0.7f) {
+                    // Check to prevent wrapping a decorator around another decorator 
+                    // that was just applied in the same stream (though stream order is undefined)
+                    if (!(currentCell instanceof SnowDecorator)) {
+                        cells[targetR][targetC] = new SnowDecorator(currentCell);
+                    }
+                } 
+                else if (data.getAttribute().equals("windx") || data.getAttribute().equals("windy")) {
+                    // Check if *either* wind component is strong enough
+                    if (data.getValue() > 0.8f) {
+                        if (!(currentCell instanceof WindDecorator)) {
+                            cells[targetR][targetC] = new WindDecorator(currentCell);
+                        }
+                    }
+                }
+            }
+        });
     }
 
-    public void handleWeatherUpdate(WeatherData data) {
-        int r = data.getY(); 
-        int c = data.getX();
-        
-        if (inBounds(r, c)) {
-            T cell = get(r, c);
-            cell.applyWeather(data);
+    public void paint(Graphics g, Point mousePos) {
+        for(int r = 0; r < rows; r++) {
+            for(int c = 0; c < cols; c++) {
+                cells[r][c].paint(g, mousePos);
+            }
         }
     }
 }

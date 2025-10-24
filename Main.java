@@ -1,89 +1,93 @@
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
+// Main.java (FINAL FIX - Connects ALL Observers)
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Random;
 
 public class Main {
+    
+    private static JFrame mainFrame;
+
+    private static char ColToLabel(int col) { 
+        return (char) ('A' + col);
+    }
+    
+    public static void restartGame() {
+        if (mainFrame != null) {
+            mainFrame.dispose();
+        }
+        main(new String[]{});
+    }
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            // 1. JFrame and container setup
-            JFrame frame = new JFrame("Grid Game - Reach the Goal!");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setResizable(false);
-            
-            int rows = 10;
-            int cols = 10;
-            
-            // 2. Grid Creation
-            Grid<Cell> grid = new Grid<>(rows, cols);
+        
+        Grid<Cell> grid = new Grid<Cell>(); 
+        
+        int rows = grid.rows(), cols = grid.cols();
+        Random rnd = new Random();
 
-            // 3. Grid Filling Loop (MUST HAPPEN FIRST)
-            for (int r = 0; r < rows; r++) {
-                for (int c = 0; c < cols; c++) {
-                    
-                    // Skip the starting cell (0, 0)
-                    if (r == 0 && c == 0) {
-                        grid.set(r, c, new GrassCell((char)('A' + c), r, c * Cell.size, r * Cell.size));
-                        continue;
-                    }
+        // --- ASSIGNMENT 2 SYSTEM (Numerical Data) ---
+        WeatherClient weatherClient = new WeatherClient();
+        // Grid uses this for movement cost/decorator changes
+        weatherClient.addObserver(grid);
+        
+        // --- RESTORED OLD SYSTEM (Random Events for Console/Tint) ---
+        WeatherStream randomWeatherStream = new WeatherStream();
+        
+        // --- Grid Initialization ---
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int x = c * Cell.size;
+                int y = r * Cell.size;
+                int roll = rnd.nextInt(100); 
 
-                    double type = Math.random();
-
-                    // Maze obstacle creation (25% Sand, 20% Water, 55% Grass)
-                    if (type < 0.25) { 
-                        grid.set(r, c, new SandCell((char)('A' + c), r, c * Cell.size, r * Cell.size));
-                    } else if (type < 0.45) { 
-                        grid.set(r, c, new WaterCell((char)('A' + c), r, c * Cell.size, r * Cell.size));
-                    } else { 
-                        grid.set(r, c, new GrassCell((char)('A' + c), r, c * Cell.size, r * Cell.size));
-                    }
+                if (roll < 15) {
+                    grid.setCell(r, c, new WaterCell(ColToLabel(c), r, c, x, y));
+                } else if (roll < 35) {
+                    grid.setCell(r, c, new SandCell(ColToLabel(c), r, c, x, y));
+                } else {
+                    grid.setCell(r, c, new GrassCell(ColToLabel(c), r, c, x, y));
                 }
             }
-            
-            // 4. Randomize the goal AFTER the grid is filled.
-            grid.randomizeGoal(); 
-            
-            // --- CRITICAL FIX: Add Wall around the Goal ---
-            int goalR = grid.getGoalRow();
-            int goalC = grid.getGoalCol();
-            
-            // Define the ONE open entrance: We'll force the cell directly above the goal to be the entrance
-            // For example, if goal is at (8, 8), the entrance is forced to be (7, 8).
-            int entranceR = goalR - 1;
-            int entranceC = goalC; 
-            
-            // Check all 4 neighbours of the goal
-            int[] dr = {-1, 1, 0, 0}; // Change in row (Up, Down, Left, Right)
-            int[] dc = {0, 0, -1, 1}; // Change in col
-            
-            for (int i = 0; i < 4; i++) {
-                int neighborR = goalR + dr[i];
-                int neighborC = goalC + dc[i];
-                
-                // If the neighbor is in bounds and is NOT the designated entrance...
-                if (grid.inBounds(neighborR, neighborC) && (neighborR != entranceR || neighborC != entranceC)) {
-                    // ...force it to be an impassable WaterCell (if it's not the goal cell itself)
-                    if (grid.get(neighborR, neighborC) != grid.get(goalR, goalC)) {
-                         grid.set(neighborR, neighborC, new WaterCell((char)('A' + neighborC), neighborR, neighborC * Cell.size, neighborR * Cell.size));
-                    }
-                }
-            }
-            // ---------------------------------------------
+        }
 
-            // 5. Player and GamePanel setup
-            Player player = new Player(0, 0); 
-            GamePanel gamePanel = new GamePanel(grid, player);
-            
-            frame.add(gamePanel);
-            
-            // 6. Start the weather feed
-            Thread weatherFeed = new Thread(new WeatherFeedReader(grid));
-            weatherFeed.start();
-            
-            // 7. Frame packing and visibility
-            frame.pack();
-            frame.setLocationRelativeTo(null); 
-            frame.setVisible(true);
-            
-            gamePanel.requestFocusInWindow();
-        });
+        grid.setCell(0, 0, new GrassCell(ColToLabel(0), 0, 0, 0, 0));
+        
+        int lastRow = rows - 1;
+        int lastCol = cols - 1;
+        int lastX = lastCol * Cell.size;
+        int lastY = lastRow * Cell.size;
+        
+        grid.setCell(lastRow, lastCol,
+            new GrassCell(ColToLabel(lastCol), lastRow, lastCol, lastX, lastY));
+
+        Player player = new Player(0, 0);
+
+        JFrame f = new JFrame("Grid Game - Reach the Goal!");
+        mainFrame = f; 
+        
+        f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        f.setResizable(false);
+
+        GamePanel panel = new GamePanel(grid, player);
+        
+        // FIX 1: Add GamePanel as observer to the new client (for general repaint)
+        weatherClient.addObserver(panel); 
+        
+        // FIX 2: ADD GAMEPANEL AS OBSERVER TO THE RESTORED STREAM (for screen tint updates)
+        randomWeatherStream.addObserver(panel);
+        
+        // Start BOTH threads
+        new Thread(weatherClient).start(); 
+        new Thread(randomWeatherStream).start(); 
+        
+        f.add(panel, BorderLayout.CENTER);
+        f.pack();
+        f.setLocationRelativeTo(null);
+        f.setVisible(true);
+
+        panel.setFocusable(true);
+        panel.requestFocusInWindow();
+        panel.requestFocus();
     }
 }

@@ -4,26 +4,37 @@ import java.awt.Point;
 
 public class GrassCell extends Cell {
 
-    public GrassCell(char inCol, int inRow, int x, int y) {
-        super(inCol, inRow, x, y);
+    public GrassCell(char inLabel, int inRow, int inCol, int x, int y) {
+        super(inLabel, inRow, inCol, x, y); 
+    }
+    
+
+    @Override
+    public Color getColor() {
+        return new Color(102, 179, 88); 
+    }
+
+    @Override
+    public boolean isWalkable() {
+        return true; 
+    }
+    
+    @Override
+    public int getMovementCost() {
+        return 1; 
     }
 
     @Override
     public void paint(Graphics g, Point mousePos) {
+        g.setColor(getColor());
+        g.fillRect(x, y, size, size);
         
-        // 1. BASE COLOR
-        g.setColor(new Color(152, 251, 152)); 
-        g.fillRect(x, y, size, size); 
+        g.setColor(Color.DARK_GRAY);
+        g.drawRect(x, y, size, size);
 
-        // 2. FLOOD CHECK (Blue Overlay)
-        if (this.getMovementCostMultiplier() > 1.0) {
-            g.setColor(new Color(0, 0, 255, 128)); 
+        if (contains(mousePos)) {
+            g.setColor(new Color(255, 255, 255, 80)); 
             g.fillRect(x, y, size, size);
         }
-
-        // 3. DRAW OUTLINE
-        g.setColor(Color.BLACK);
-        g.drawRect(x, y, size, size);
-        // NOTE: Goal is now drawn by GamePanel, not here.
     }
 }

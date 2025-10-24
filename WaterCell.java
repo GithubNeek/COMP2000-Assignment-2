@@ -1,27 +1,35 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Point;
+import java.awt.*;
 
-public class WaterCell extends Cell {
+public class WaterCell extends Cell { 
 
-    public WaterCell(char inCol, int inRow, int x, int y) {
-        super(inCol, inRow, x, y);
+    public WaterCell(char inLabel, int inRow, int inCol, int x, int y) { 
+        super(inLabel, inRow, inCol, x, y); 
+    }
+
+
+    @Override
+    public Color getColor() {
+        return new Color(90, 150, 220);
+    }
+
+    @Override
+    public boolean isWalkable() {
+        return false; 
+    }
+
+    @Override
+    public int getMovementCost() { 
+        return 999; 
     }
 
     @Override
     public void paint(Graphics g, Point mousePos) {
         
-        // 1. BASE COLOR: Dark Blue to represent deep, impassable water
-        g.setColor(new Color(0, 51, 153)); 
-        g.fillRect(x, y, size, size); 
-
-        // 2. FLOOD CHECK: Still shows the flood effect on top of the dark blue
-        if (this.getMovementCostMultiplier() > 1.0) {
-            g.setColor(new Color(0, 0, 255, 128)); 
-            g.fillRect(x, y, size, size);
-        }
-
-        // 3. DRAW OUTLINE
+        g.setColor(getColor());
+        g.fillRect(x, y, size, size);
+        
+        g.setColor(new Color(70, 130, 200));
+        g.drawArc(x + 6, y + 8, size - 12, size - 18, 0, 180);
         g.setColor(Color.BLACK);
         g.drawRect(x, y, size, size);
     }

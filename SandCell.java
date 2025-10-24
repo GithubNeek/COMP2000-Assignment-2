@@ -1,27 +1,35 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Point;
+import java.awt.*;
 
-public class SandCell extends Cell {
+public class SandCell extends Cell { 
 
-    public SandCell(char inCol, int inRow, int x, int y) {
-        super(inCol, inRow, x, y);
+    public SandCell(char inLabel, int inRow, int inCol, int x, int y) { 
+        super(inLabel, inRow, inCol, x, y); 
+    }
+
+
+    @Override
+    public Color getColor() {
+        return new Color(230, 210, 140);
+    }
+    
+    @Override
+    public boolean isWalkable() {
+        return true; 
+    }
+    
+    @Override
+    public int getMovementCost() { 
+        return 2; 
     }
 
     @Override
     public void paint(Graphics g, Point mousePos) {
         
-        // 1. BASE COLOR: Standard Sand Yellow
-        g.setColor(Color.YELLOW); 
-        g.fillRect(x, y, size, size); 
-
-        // 2. FLOOD CHECK: Draw semi-transparent blue overlay 
-        if (this.getMovementCostMultiplier() > 1.0) {
-            g.setColor(new Color(0, 0, 255, 128)); 
-            g.fillRect(x, y, size, size);
-        }
-
-        // 3. DRAW OUTLINE
+        g.setColor(getColor());
+        g.fillRect(x, y, size, size);
+        
+        g.setColor(new Color(210, 190, 120));
+        g.drawLine(x, y + size - 1, x + size - 1, y + size - 1); 
         g.setColor(Color.BLACK);
         g.drawRect(x, y, size, size);
     }
