@@ -47,5 +47,20 @@ Component Interface: 'Cell' (Abstract Class)
 Purpose: Defines the foundational contract that all terrain types and decorators must adhere to ( e.g getMovementCost(), paint() ).
 
 Concrete Decorators: 'SnowDecorator' and 'WindDecorator'
-Purpose: These classes cover an existing Cell object and change or enhance its behaviour.  They override getMovementCost() and paint() methods to add specialised weather effects (such as fuel cost or a visual overlay) to the base cell's functionality.
+
+Purpose: These classes cover an existing Cell object and change or enhance its behaviour.  They override getMovementCost() and paint() methods to add specialised weather effects (such as fuel cost or a visual overlay) to the base functionality.
+
+---------------------------------------------------------------------------------------------------------------------------
+Java Streams and Lambda Expressions-
+Java Streams and Lambdas are utilised for contemporary, efficient data processing while adhering to functional programming concepts.
+
+**Location**
+
+-'WeatherClient.java'
+**Purpose**:A Lambda expression is utilised in the'map' operation to handle the exception raised while processing a line from the HTTP stream into a 'WeatherDataPoint' object.
+
+-'Grid.java'
+**Purpose**: The Stream API (`weatherData.stream().forEach(...)`) is used to quickly go through the `List<WeatherDataPoint>`and add or remove decorators from the game grid.
+
+
 
