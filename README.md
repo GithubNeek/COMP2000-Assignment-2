@@ -60,7 +60,20 @@ Java Streams and Lambdas are utilised for contemporary, efficient data processin
 **Purpose**:A Lambda expression is utilised in the'map' operation to handle the exception raised while processing a line from the HTTP stream into a 'WeatherDataPoint' object.
 
 -'Grid.java'
-**Purpose**: The Stream API (`weatherData.stream().forEach(...)`) is used to quickly go through the `List<WeatherDataPoint>`and add or remove decorators from the game grid.
+**Purpose**: The Stream API (`weatherData.stream().forEach(...)`) is used to quickly go through the `List<WeatherDataPoint>` and add or remove decorators from the game grid.
 
+----------------------------------------------------------------------------------------------------------------------------
+Weather Data Interpretation and Game Rules-
+The game's dynamic functionality is powered by interpreting numerical values from the WeatherClient stream using the following set of thresholds.
 
+* **Condition:** Heavy Precipitation (`rain`)
+    * **Threshold:** `rain` value $> 0.7$
+    * **Effect Applied:** `SnowDecorator` is applied to the cell.
+    * **Fuel Cost Adjustment:** Base Cost + 1 (Simulates heavy precipitation/slush).
 
+* **Condition:** High Wind Speed (`windX` or `windY`)
+    * **Threshold:** Either `windX` or `windY` value $> 0.8$
+    * **Effect Applied:** `WindDecorator` is applied to the cell.
+    * **Fuel Cost Adjustment:** Base Cost + 3 (Simulates high-speed wind resistance).
+
+If a cell's data falls below certain levels, it is restored to its basic type (for example, 'GrassCell'), ensuring that the environment returns to normal after the situation has passed.
