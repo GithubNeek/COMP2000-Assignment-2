@@ -44,7 +44,6 @@ public class Grid<T extends Cell> implements WeatherObserver {
 
     
     public void updateWeather(List<WeatherDataPoint> weatherData) {
-        // Clear all current weather decorators before applying new ones
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (cells[r][c] instanceof CellDecorator) {
